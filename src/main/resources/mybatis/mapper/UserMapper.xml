@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+						"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.railway.labor.score.mapper.UserMapper">
+	<resultMap id="LoginResultMap"
+		type="com.railway.labor.score.model.dto.LoginInfoDTO">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="account" property="userAccount" jdbcType="VARCHAR" />
+		<result column="name" property="userName" jdbcType="VARCHAR" />
+		
+	</resultMap>
+	<resultMap id="BaseResultMap" type="com.railway.labor.score.model.dto.UserDTO">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="account" property="account" jdbcType="VARCHAR" />
+		<result column="telephone" property="telephone" jdbcType="VARCHAR" />
+		<result column="email" property="email" jdbcType="VARCHAR" />
+		<result column="password" property="password" jdbcType="VARCHAR" />
+		<result column="creator" property="creator" jdbcType="VARCHAR" />
+		<result column="create_date" property="createDate" jdbcType="DATE" />
+		<result column="modifier" property="modifier" jdbcType="VARCHAR" />
+		<result column="modify_date" property="modifyDate" jdbcType="DATE" />
+		<result column="remarks" property="remarks" jdbcType="VARCHAR" />
+		<result column="del_flag" property="delFlag" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		id,name,account,telephone,email,password,creator,
+		create_date, modifier, modify_date, remarks, del_flag
+	</sql>
+
+
+	<sql id="Query_Params">
+		<where>
+			del_flag='0'
+			<if test="query.id!=null">
+				and id=#{query.id}
+			</if>
+			<if test="query.name!=null and query.name!=''">
+				and name=#{query.name}
+			</if>
+			<if test="query.account!=null and query.account!=''">
+				and account=#{query.account}
+			</if>
+			<if test="query.telephone!=null and query.telephone!=''">
+				and telephone=#{query.telephone}
+			</if>
+			<if test="query.email!=null and query.email!=''">
+				and email=#{query.email}
+			</if>
+			<if test="query.password!=null and query.password!=''">
+				and password=#{query.password}
+			</if>
+			
+		</where>
+	</sql>
+
+	<sql id="Pagination">
+		limit #{pagination.start}, #{pagination.limit}
+	</sql>
+
+	<select id="login" resultMap="LoginResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_user
+		WHERE account = #{account, jdbcType=VARCHAR} and password =
+		#{password,
+		jdbcType=VARCHAR} and del_flag = '0'
+	</select>
+
+	<select id="query" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_user
+		<include refid="Query_Params" />
+		<include refid="Pagination" />
+	</select>
+
+	<select id="count" resultType="Long">
+		SELECT count(*)
+		FROM t_user
+		<include refid="Query_Params" />
+	</select>
+
+	<select id="get" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_user
+		WHERE id = #{id, jdbcType=BIGINT} and del_flag = '0'
+	</select>
+
+	<insert id="insert" parameterType="com.railway.labor.score.model.dto.UserDTO">
+		INSERT INTO
+		t_user
+		(name,account,telephone,email,password,creator, create_date, modifier,
+		modify_date, remarks, del_flag)
+		VALUES
+		(#{name},
+		#{account},#{telephone},#{email}, #{password}, #{creator},
+		#{createDate},#{modifier}, #{modifyDate},#{remarks},#{delFlag})
+	</insert>
+
+	<update id="update" parameterType="com.railway.labor.score.model.dto.UserDTO">
+		UPDATE
+		t_user
+		SET
+		name = #{name},
+		password = #{password}
+		WHERE
+		id = #{id} and del_flag = '0'
+	</update>
+
+	<delete id="delete" parameterType="java.lang.Long">
+		UPDATE
+		t_user
+		SET
+		del_flag = '1'
+		WHERE
+		id =#{id} and del_flag = '0'
+	</delete>
+
+</mapper>

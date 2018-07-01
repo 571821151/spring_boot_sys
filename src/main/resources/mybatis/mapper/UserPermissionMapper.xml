@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+						"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.railway.labor.score.mapper.UserPermissionMapper">
+
+	<resultMap id="BaseResultMap" type="com.railway.labor.score.model.dto.UserPermissionDTO">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="user_id" property="userId" jdbcType="BIGINT" />
+		<result column="permission_id" property="permissionId" jdbcType="BIGINT" />
+		<result column="creator" property="creator" jdbcType="VARCHAR" />
+		<result column="create_date" property="createDate" jdbcType="DATE" />
+		<result column="modifier" property="modifier" jdbcType="VARCHAR" />
+		<result column="modify_date" property="modifyDate" jdbcType="DATE" />
+		<result column="remarks" property="remarks" jdbcType="VARCHAR" />
+		<result column="del_flag" property="delFlag" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		id, user_id, permission_id, creator, create_date, modifier, modify_date, remarks, del_flag
+	</sql>
+	
+	<sql id="Query_Params">
+		<where>
+			del_flag='0'
+			<if test="query.id!=null">
+				and id=#{query.id}
+			</if>
+			<if test="query.userId!=null">
+				and user_id=#{query.userId}
+			</if>
+			<if test="query.permissionId!=null">
+				and permission_id=#{query.permissionId}
+			</if>
+		</where>
+	</sql>
+
+	<sql id="Pagination">
+		limit #{pagination.start}, #{pagination.limit}
+	</sql>
+
+	<select id="query" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_user_permission
+		<include refid="Query_Params" />
+		<include refid="Pagination" />
+	</select>
+
+	<select id="count" resultType="Long">
+		SELECT count(*)
+		FROM t_user_permission
+		<include refid="Query_Params" />
+	</select>
+
+	<select id="get" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_user_permission
+		WHERE id = #{id, jdbcType=BIGINT} and del_flag = '0'
+	</select>
+
+	<insert id="insert" parameterType="com.railway.labor.score.model.dto.UserPermissionDTO">
+		INSERT INTO
+		t_user_permission
+		(user_id, permission_id, creator, create_date, modifier, modify_date, remarks, del_flag)
+		VALUES
+		(#{userId},#{permissionId}, #{creator},#{createDate},#{modifier}, #{modifyDate},#{remarks},#{delFlag})
+	</insert>
+
+	<update id="update" parameterType="com.railway.labor.score.model.dto.UserPermissionDTO">
+		UPDATE
+		t_user_permission
+		SET
+		user_id = #{userId},
+		permission_id = #{permissionId}
+		WHERE
+		id = #{id} and del_flag = '0'
+	</update>
+
+	<delete id="delete" parameterType="java.lang.Long">
+		UPDATE
+		t_user_permission
+		SET
+		del_flag = '1'
+		WHERE
+		id =#{id} and del_flag = '0'
+	</delete>
+
+</mapper>

@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+						"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.railway.labor.score.mapper.EmployeeMapper">
+
+	<resultMap id="LoginResultMap"
+		type="com.railway.labor.score.model.dto.LoginInfoDTO">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="job_number" property="employeeJobNumber" jdbcType="VARCHAR" />
+		<result column="name" property="employeeName" jdbcType="VARCHAR" />
+		<result column="team_id" property="teamId" jdbcType="BIGINT" />
+	</resultMap>
+
+	<resultMap id="BaseResultMap" type="com.railway.labor.score.model.dto.EmployeeDTO">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="job_number" property="employeeJobNumber" jdbcType="VARCHAR" />
+		<result column="name" property="employeeName" jdbcType="VARCHAR" />
+		<result column="team_id" property="teamId" jdbcType="BIGINT" />
+		<result column="sequence" property="sequence" jdbcType="VARCHAR" />
+		<result column="grade" property="grade" jdbcType="VARCHAR" />
+		<result column="department_id" property="departmentId" jdbcType="BIGINT" />
+		<result column="department_name" property="departmentName" jdbcType="VARCHAR" />
+		<result column="team_name" property="teamName" jdbcType="VARCHAR" />
+		<result column="creator" property="creator" jdbcType="VARCHAR" />
+		<result column="create_date" property="createDate" jdbcType="DATE" />
+		<result column="modifier" property="modifier" jdbcType="VARCHAR" />
+		<result column="modify_date" property="modifyDate" jdbcType="DATE" />
+		<result column="remarks" property="remarks" jdbcType="VARCHAR" />
+		<result column="del_flag" property="delFlag" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		id, job_number, name, `sequence`, `grade`, team_id, position_id, creator, create_date, modifier, modify_date, remarks, del_flag
+	</sql>
+
+	<sql id="With_Team_Department_Column_List">
+		t_employee.id,t_department.name as department_name,t_department.id as department_id,t_team.name as team_name , job_number, t_employee.name, `sequence`, `grade`, team_id, position_id
+	</sql>
+	
+	<sql id="Query_Params">
+		INNER JOIN t_team on t_employee.team_id=t_team.id
+		INNER JOIN t_department on t_team.department_id=t_department.id
+		<where>
+			t_employee.del_flag='0' and t_team.del_flag='0' and t_department.del_flag='0'
+			<if test="query.id!=null">
+				and id=#{query.id}
+			</if>
+			<if test="query.employeeJobNumber!=null and query.employeeJobNumber!=''">
+				and job_number=#{query.employeeJobNumber}
+			</if>
+			<if test="query.employeeName!=null and query.employeeName!=''">
+				and t_employee.name like "%"#{query.employeeName}"%"
+			</if>
+			<if test="query.sequence!=null and query.sequence!=''">
+				and `sequence`  = #{query.sequence}
+			</if>
+			<if test="query.grade!=null and query.grade!=''">
+				and `grade`  = #{query.grade}
+			</if>
+			<if test="query.teamId!=null">
+				and team_id=#{query.teamId}
+			</if>
+			<if test="query.departmentId!=null">
+				and t_department.id =#{query.departmentId}
+			</if>
+			<if test="query.departmentName!=null and query.departmentName!=''">
+				and t_department.name =#{query.departmentName}
+			</if>
+			<if test="query.teamName!=null and query.teamName!=''">
+				and t_team.name  = #{query.teamName}
+			</if>
+		</where>
+	</sql>
+
+	<sql id="Pagination">
+		<if test="pagination!=null and pagination.start!=null and pagination.limit!=null">
+				limit #{pagination.start}, #{pagination.limit}
+		</if>
+	</sql>
+	
+	<sql id="OrderBy">
+		<if test="query.orderByList!=null and query.orderByList.size()!=0">
+			order by 
+			<foreach item="item" index="index" collection="query.orderByList" separator=",">
+       			<![CDATA[ 
+       			${item.order()}
+       			]]>
+			</foreach>
+		</if>
+	</sql>
+
+	<select id="login" resultMap="LoginResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_employee
+		WHERE job_number = #{jobNumber, jdbcType=VARCHAR} and password =
+		#{password, jdbcType=VARCHAR} and del_flag = '0'
+	</select>
+
+	<select id="query" resultMap="BaseResultMap">
+		SELECT
+		<include refid="With_Team_Department_Column_List" />
+		FROM t_employee
+		<include refid="Query_Params" />
+		<include refid="OrderBy" />
+		<include refid="Pagination" />
+	</select>
+
+	<select id="count" resultType="Long">
+		SELECT count(*)
+		FROM t_employee
+		<include refid="Query_Params" />
+	</select>
+
+	<select id="get" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_employee
+		WHERE id = #{id, jdbcType=BIGINT} and del_flag = '0'
+	</select>
+	
+	<select id="getByJobNumber" resultMap="BaseResultMap">
+		SELECT
+		<include refid="With_Team_Department_Column_List" />
+		FROM t_employee
+		INNER JOIN t_team on t_employee.team_id=t_team.id
+		INNER JOIN t_department on t_team.department_id=t_department.id
+		WHERE job_number = #{jobNumber, jdbcType=VARCHAR} and t_employee.del_flag='0' and t_team.del_flag='0' and t_department.del_flag='0'
+	</select>
+	
+	<insert id="insert" parameterType="com.railway.labor.score.model.dto.EmployeeDTO">
+		<selectKey keyProperty="id" resultType="java.lang.Long"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO 
+		t_employee
+		(name,job_number,`sequence`,`grade`,password,team_id,position_id,creator, create_date, modifier,
+		modify_date, remarks, del_flag)
+		VALUES
+		(#{employeeName},#{employeeJobNumber},#{sequence},#{grade},#{password},#{teamId}, #{positionId}, #{creator},
+		#{createDate},#{modifier}, #{modifyDate},#{remarks},#{delFlag})
+	</insert>
+
+	<insert id="batchInsert" parameterType="java.util.List">
+        <selectKey keyProperty="id" resultType="java.lang.Long"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+        INSERT INTO
+		t_employee
+		(name,job_number,`sequence`,`grade`,password,team_id,position_id,creator, create_date, modifier,
+		modify_date, remarks, del_flag)
+		VALUES
+        <foreach collection ="employeeDTOList" item="item" index= "index" separator =",">
+            (#{item.employeeName},#{item.employeeJobNumber},#{item.sequence},#{item.grade},#{item.password},#{item.teamId}, #{item.positionId}, #{item.creator},
+		#{item.createDate},#{item.modifier}, #{item.modifyDate},#{item.remarks},#{item.delFlag})
+        </foreach >
+     </insert>
+
+	<update id="updatePassword">
+		UPDATE t_employee
+		<set>
+			password = #{password, jdbcType=VARCHAR}
+		</set>
+		WHERE
+		id = #{id, jdbcType=BIGINT} and del_flag = '0'
+	</update>
+
+	<update id="update"
+		parameterType="com.railway.labor.score.model.dto.EmployeeDTO">
+		UPDATE t_employee
+		<set>
+			<if test="employeeName != null">
+				name = #{employeeName},
+			</if>
+			<if test="employeeJobNumber != null">
+				job_number = #{employeeJobNumber},
+			</if>
+			<if test="sequence!=null">
+				`sequence`  = #{sequence},
+			</if>
+			<if test="grade!=null">
+				`grade`  = #{grade},
+			</if>
+			<if test="password != null">
+				password = #{password},
+			</if>
+			<if test="teamId != null">
+				team_id = #{teamId},
+			</if>
+			<if test="positionId != null">
+				position_id = #{positionId},
+			</if>
+			<if test="modifier != null">
+				modifier = #{modifier},
+			</if>
+			<if test="modifyDate != null">
+				modify_date = #{modifyDate},
+			</if>
+			<if test="remarks != null">
+				remarks = #{remarks},
+			</if>
+			<if test="delFlag != null">
+				del_flag = #{delFlag},
+			</if>
+		</set>
+		WHERE
+		id = #{id} and del_flag = '0'
+	</update>
+
+	<update id="batchUpdate" parameterType="java.util.List">  
+		<foreach collection="employeeDTOList" item="item" index="index" open="" close="" separator=";">  
+			UPDATE t_employee   
+			<set>
+				<if test="item.employeeName != null">
+					name = #{item.employeeName},
+				</if>
+				<if test="item.employeeJobNumber != null">
+					job_number = #{item.employeeJobNumber},
+				</if>
+				<if test="query.sequence!=null">
+					`sequence`  = #{item.sequence},
+				</if>
+				<if test="query.grade!=null">
+					`grade`  = #{item.grade},
+				</if>
+				<if test="item.password != null">
+					password = #{item.password},
+				</if>
+				<if test="item.teamId != null">
+					team_id = #{item.teamId},
+				</if>
+				<if test="item.positionId != null">
+					position_id = #{item.positionId},
+				</if>
+				<if test="item.modifier != null">
+					modifier = #{item.modifier},
+				</if>
+				<if test="item.modifyDate != null">
+					modify_date = #{item.modifyDate},
+				</if>
+				<if test="item.remarks != null">
+					remarks = #{item.remarks},
+				</if>
+				<if test="item.delFlag != null">
+					del_flag = #{item.delFlag},
+				</if>
+			</set>
+			WHERE
+			id = #{item.id} and del_flag = '0'
+		</foreach>
+	</update>
+
+	<delete id="delete" parameterType="java.lang.Long">
+		UPDATE
+		t_employee
+		SET
+		del_flag = '1'
+		WHERE
+		id =#{id} and del_flag = '0'
+	</delete>
+
+</mapper>

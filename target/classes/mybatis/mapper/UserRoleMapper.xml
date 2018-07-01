@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+						"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.railway.labor.score.mapper.UserRoleMapper">
+
+	<resultMap id="BaseResultMap" type="com.railway.labor.score.model.dto.UserRoleDTO">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="user_id" property="userId" jdbcType="BIGINT" />
+		<result column="role_id" property="roleId" jdbcType="BIGINT" />
+		<result column="user_account" property="userAccount" jdbcType="VARCHAR" />
+		<result column="user_name" property="userName" jdbcType="VARCHAR" />
+		<result column="role_name" property="roleName" jdbcType="VARCHAR" />
+		<result column="creator" property="creator" jdbcType="VARCHAR" />
+		<result column="create_date" property="createDate" jdbcType="DATE" />
+		<result column="modifier" property="modifier" jdbcType="VARCHAR" />
+		<result column="modify_date" property="modifyDate" jdbcType="DATE" />
+		<result column="remarks" property="remarks" jdbcType="VARCHAR" />
+		<result column="del_flag" property="delFlag" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		id, user_id, role_id, creator, create_date, modifier, modify_date, remarks, del_flag
+	</sql>
+	
+	<sql id="With_user_role_Column_List">
+		t_user_role.id,t_user.account as user_account, t_user.name as user_name,t_role.name as role_name, user_id, role_id
+	</sql>
+	
+	<sql id="Query_Params">
+		INNER JOIN t_user on  t_user_role.user_id = t_user.id
+		INNER JOIN t_role on t_user_role.role_id=t_role.id
+		<where>
+			t_user_role.del_flag='0' and t_user.del_flag='0' and t_role.del_flag='0'
+			<if test="query.id!=null">
+				and id=#{query.id}
+			</if>
+			<if test="query.userId!=null">
+				and user_id=#{query.userId}
+			</if>
+			<if test="query.roleId!=null">
+				and role_id=#{query.roleId}
+			</if>
+			<if test="query.userAccount!=null and query.userAccount!=''">
+				and t_user.account like "%"#{query.userAccount}"%"
+			</if>
+			<if test="query.userName!=null and query.userName!=''">
+				and t_user.name like "%"#{query.userName}"%"
+			</if>
+			<if test="query.roleName!=null and query.roleName!=''">
+				and t_role.name = #{query.roleName}
+			</if>
+			
+		</where>
+	</sql>
+
+	<sql id="Pagination">
+		limit #{pagination.start}, #{pagination.limit}
+	</sql>
+
+	<sql id="OrderBy">
+		<if test="query.orderByList!=null and query.orderByList.size()!=0">
+			order by 
+			<foreach item="item" index="index" collection="query.orderByList" separator=",">
+       			<![CDATA[ 
+       			${item.order()}
+       			]]>
+			</foreach>
+		</if>
+	</sql>
+
+	<select id="query" resultMap="BaseResultMap">
+		SELECT
+		<include refid="With_user_role_Column_List" />
+		FROM t_user_role
+		<include refid="Query_Params" />
+		<include refid="OrderBy" />
+		<include refid="Pagination" />
+	</select>
+
+	<select id="count" resultType="Long">
+		SELECT count(*)
+		FROM t_user_role
+		<include refid="Query_Params" />
+	</select>
+
+	<select id="get" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_user_role
+		WHERE id = #{id, jdbcType=BIGINT} and del_flag = '0'
+	</select>
+
+	<insert id="insert" parameterType="com.railway.labor.score.model.dto.UserRoleDTO">
+	<selectKey keyProperty="id" resultType="java.lang.Long"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO
+		t_user_role
+		(user_id, role_id, creator, create_date, modifier, modify_date, remarks, del_flag)
+		VALUES
+		(#{userId},#{roleId}, #{creator},#{createDate},#{modifier}, #{modifyDate},#{remarks},#{delFlag})
+	</insert>
+
+	<update id="update"
+		parameterType="com.railway.labor.score.model.dto.UserRoleDTO">
+		UPDATE t_user_role
+		<set>
+			<if test="userId != null">
+				user_id = #{userId},
+			</if>
+			<if test="roleId != null">
+				role_id = #{roleId},
+			</if>
+			<if test="creator != null">
+				creator = #{creator},
+			</if>
+			<if test="createDate != null">
+				create_date = #{createDate},
+			</if>
+			<if test="modifier != null">
+				modifier = #{modifier},
+			</if>
+			<if test="modifyDate != null">
+				modify_date = #{modifyDate},
+			</if>
+			<if test="remarks != null">
+				remarks = #{remarks},
+			</if>
+			<if test="delFlag != null">
+				del_flag = #{delFlag},
+			</if>
+		</set>
+		WHERE
+		id = #{id} and del_flag = '0'
+	</update>
+
+
+	<delete id="delete" parameterType="java.lang.Long">
+		UPDATE
+		t_user_role
+		SET
+		del_flag = '1'
+		WHERE
+		id =#{id} and del_flag = '0'
+	</delete>
+
+</mapper>

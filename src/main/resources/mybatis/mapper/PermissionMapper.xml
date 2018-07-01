@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+						"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.railway.labor.score.mapper.PermissionMapper">
+
+	<resultMap id="BaseResultMap" type="com.railway.labor.score.model.dto.PermissionDTO">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="type" property="type" jdbcType="VARCHAR" />
+		<result column="value" property="value" jdbcType="VARCHAR" />
+		<result column="parent_id" property="parentId" jdbcType="BIGINT" />
+		<result column="level" property="level" jdbcType="VARCHAR" />
+		<result column="order" property="order" jdbcType="VARCHAR" />
+		<result column="descr" property="descr" jdbcType="VARCHAR" />
+		<result column="creator" property="creator" jdbcType="VARCHAR" />
+		<result column="create_date" property="createDate" jdbcType="DATE" />
+		<result column="modifier" property="modifier" jdbcType="VARCHAR" />
+		<result column="modify_date" property="modifyDate" jdbcType="DATE" />
+		<result column="remarks" property="remarks" jdbcType="VARCHAR" />
+		<result column="del_flag" property="delFlag" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		id,name,type,`value`,parent_id,`level`,`order`,descr,creator, create_date, modifier, modify_date, remarks, del_flag
+	</sql>
+
+	<sql id="Query_Params">
+		<where>
+			del_flag='0'
+			<if test="query.id!=null">
+				and id=#{query.id}
+			</if>
+			<if test="query.parentId!=null">
+				and parent_id=#{query.parentId}
+			</if>
+			<if test="query.name!=null and query.name!=''">
+				and name=#{query.name}
+			</if>
+			<if test="query.level!=null and query.level!=''">
+				and `level`=#{query.level}
+			</if>
+			<if test="query.type!=null and query.type!=''">
+				and type=#{query.type}
+			</if>
+			<if test="query.value!=null and query.value!=''">
+				and `value`=#{query.value}
+			</if>
+			<if test="query.order!=null and query.order!=''">
+				and `order`=#{query.order}
+			</if>
+			<if test="query.descr!=null and query.descr!=''">
+				and descr=#{query.descr}
+			</if>
+		</where>
+	</sql>
+
+	<sql id="Query_In_Params">
+		<where>
+			del_flag='0' 
+			and id IN
+				<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">  
+        			#{item}
+    			</foreach> 
+		</where>
+	</sql>
+
+	<sql id="Pagination">
+		limit #{pagination.start}, #{pagination.limit}
+	</sql>
+
+	<select id="query" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_permission
+		<include refid="Query_Params" />
+		<include refid="Pagination" />
+	</select>
+
+	<select id="queryByIds" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_permission
+		<include refid="Query_In_Params" />
+	</select>
+
+	<select id="count" resultType="Long">
+		SELECT count(*)
+		FROM t_permission
+		<include refid="Query_Params" />
+	</select>
+	
+	<select id="get" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_permission
+		WHERE id = #{id, jdbcType=BIGINT} and del_flag = '0'
+	</select>
+
+	<insert id="insert" parameterType="com.railway.labor.score.model.dto.PermissionDTO">
+		<selectKey keyProperty="id" resultType="java.lang.Long"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO
+		t_permission
+		(name,type,`value`,parent_id,`level`,`order`,descr,creator, create_date, modifier,
+		modify_date, remarks, del_flag)
+		VALUES
+		(#{name},#{type},#{value},#{parentId},#{level},#{order},#{descr}, #{creator},
+		#{createDate},#{modifier}, #{modifyDate},#{remarks},#{delFlag})
+	</insert>
+
+	<update id="update" parameterType="com.railway.labor.score.model.dto.PermissionDTO">
+		UPDATE t_permission
+		<set>
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="type != null">
+				type = #{type},
+			</if>
+			<if test="value != null">
+				`value` = #{value},
+			</if>
+			<if test="parentId != null">
+				parent_id = #{parentId},
+			</if>
+			<if test="level != null">
+				`level` = #{level},
+			</if>
+			<if test="order != null">
+				`order` = #{order},
+			</if>
+			<if test="descr != null">
+				descr = #{descr},
+			</if>
+			<if test="creator != null">
+				creator = #{creator},
+			</if>
+			<if test="createDate != null">
+				create_date = #{createDate},
+			</if>
+			<if test="modifier != null">
+				modifier = #{modifier},
+			</if>
+			<if test="modifyDate != null">
+				modify_date = #{modifyDate},
+			</if>
+			<if test="remarks != null">
+				remarks = #{remarks},
+			</if>
+			<if test="delFlag != null">
+				del_flag = #{delFlag},
+			</if>
+		</set>
+		WHERE
+		id = #{id} and del_flag = '0'
+	</update>
+	
+	<delete id="delete" parameterType="java.lang.Long">
+		UPDATE
+		t_permission
+		SET
+		del_flag = '1'
+		WHERE
+		id =#{id} and del_flag = '0'
+	</delete>
+
+</mapper>

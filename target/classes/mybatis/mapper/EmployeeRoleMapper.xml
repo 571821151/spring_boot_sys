@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+						"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.railway.labor.score.mapper.EmployeeRoleMapper">
+
+	<resultMap id="BaseResultMap" type="com.railway.labor.score.model.dto.EmployeeRoleDTO">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="employee_id" property="employeeId" jdbcType="BIGINT" />
+		<result column="role_id" property="roleId" jdbcType="BIGINT" />
+		<result column="employee_job_number" property="employeeJobNumber" jdbcType="VARCHAR" />
+		<result column="employee_name" property="employeeName" jdbcType="VARCHAR" />
+		<result column="department_name" property="departmentName" jdbcType="VARCHAR" />
+		<result column="team_name" property="teamName" jdbcType="VARCHAR" />
+		<result column="role_name" property="roleName" jdbcType="VARCHAR" />
+		<result column="creator" property="creator" jdbcType="VARCHAR" />
+		<result column="create_date" property="createDate" jdbcType="DATE" />
+		<result column="modifier" property="modifier" jdbcType="VARCHAR" />
+		<result column="modify_date" property="modifyDate" jdbcType="DATE" />
+		<result column="remarks" property="remarks" jdbcType="VARCHAR" />
+		<result column="del_flag" property="delFlag" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		id, employee_id, role_id, creator, create_date, modifier, modify_date, remarks, del_flag
+	</sql>
+	
+	<sql id="With_employee_role_Column_List">
+		t_employee_role.id,t_employee.job_number as employee_job_number, t_employee.name as employee_name,t_department.name as department_name,t_team.name as team_name,t_role.name as role_name, employee_id, role_id
+	</sql>
+	
+	<sql id="Query_Params">
+		INNER JOIN t_employee on  t_employee_role.employee_id = t_employee.id
+		INNER JOIN t_team on t_employee.team_id=t_team.id
+		INNER JOIN t_department on t_team.department_id=t_department.id
+		LEFT OUTER JOIN t_role on t_employee_role.role_id=t_role.id
+		<where>
+			t_employee_role.del_flag='0' and t_employee.del_flag='0' and t_team.del_flag='0' and t_department.del_flag='0' and t_role.del_flag='0'
+			<if test="query.id!=null">
+				and id=#{query.id}
+			</if>
+			<if test="query.employeeId!=null">
+				and employee_id=#{query.employeeId}
+			</if>
+			<if test="query.roleId!=null">
+				and role_id=#{query.roleId}
+			</if>
+			<if test="query.employeeJobNumber!=null and query.employeeJobNumber!=''">
+				and t_employee.job_number like "%"#{query.employeeJobNumber}"%"
+			</if>
+			<if test="query.employeeName!=null and query.employeeName!=''">
+				and t_employee.name like "%"#{query.employeeName}"%"
+			</if>
+			<if test="query.departmentName!=null and query.departmentName!=''">
+				and t_department.name = #{query.departmentName}
+			</if>
+			<if test="query.teamName!=null and query.teamName!=''">
+				and t_team.name = #{query.teamName}
+			</if>
+			<if test="query.roleName!=null and query.roleName!=''">
+				and t_role.name = #{query.roleName}
+			</if>
+			
+		</where>
+	</sql>
+
+	<sql id="Pagination">
+		limit #{pagination.start}, #{pagination.limit}
+	</sql>
+
+	<sql id="OrderBy">
+		<if test="query.orderByList!=null and query.orderByList.size()!=0">
+			order by 
+			<foreach item="item" index="index" collection="query.orderByList" separator=",">
+       			<![CDATA[ 
+       			${item.order()}
+       			]]>
+			</foreach>
+		</if>
+	</sql>
+
+	<select id="query" resultMap="BaseResultMap">
+		SELECT
+		<include refid="With_employee_role_Column_List" />
+		FROM t_employee_role
+		<include refid="Query_Params" />
+		<include refid="OrderBy" />
+		<include refid="Pagination" />
+	</select>
+
+	<select id="count" resultType="Long">
+		SELECT count(*)
+		FROM t_employee_role
+		<include refid="Query_Params" />
+	</select>
+
+	<select id="get" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_employee_role
+		WHERE id = #{id, jdbcType=BIGINT} and del_flag = '0'
+	</select>
+
+	<insert id="insert" parameterType="com.railway.labor.score.model.dto.EmployeeRoleDTO">
+	<selectKey keyProperty="id" resultType="java.lang.Long"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO
+		t_employee_role
+		(employee_id, role_id, creator, create_date, modifier, modify_date, remarks, del_flag)
+		VALUES
+		(#{employeeId},#{roleId}, #{creator},#{createDate},#{modifier}, #{modifyDate},#{remarks},#{delFlag})
+	</insert>
+
+	<sql id="Update_Params">
+		<set>
+			<if test="employeeId != null">
+				employee_id = #{employeeId},
+			</if>
+			<if test="roleId != null">
+				role_id = #{roleId},
+			</if>
+			<if test="creator != null">
+				creator = #{creator},
+			</if>
+			<if test="createDate != null">
+				create_date = #{createDate},
+			</if>
+			<if test="modifier != null">
+				modifier = #{modifier},
+			</if>
+			<if test="modifyDate != null">
+				modify_date = #{modifyDate},
+			</if>
+			<if test="remarks != null">
+				remarks = #{remarks},
+			</if>
+			<if test="delFlag != null">
+				del_flag = #{delFlag},
+			</if>
+		</set>
+	</sql>
+	
+	<update id="update"
+		parameterType="com.railway.labor.score.model.dto.EmployeeRoleDTO">
+		UPDATE t_employee_role
+		<include refid="Update_Params" />
+		WHERE
+		id = #{id} and del_flag = '0'
+	</update>
+
+	<update id="updateByConditon"
+		parameterType="com.railway.labor.score.model.dto.EmployeeRoleDTO">
+		UPDATE t_employee_role
+		<include refid="Update_Params" />
+		WHERE
+		del_flag = '0'
+		<if test="employeeId!=null">
+			and employee_id=#{employeeId}
+		</if>
+		<if test="roleId!=null">
+			and role_id=#{roleId}
+		</if>
+	</update>
+
+	<delete id="delete" parameterType="java.lang.Long">
+		UPDATE
+		t_employee_role
+		SET
+		del_flag = '1'
+		WHERE
+		id =#{id} and del_flag = '0'
+	</delete>
+
+</mapper>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+						"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.railway.labor.score.mapper.DepartmentMapper">
+
+	<resultMap id="BaseResultMap" type="com.railway.labor.score.model.dto.DepartmentDTO">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="parent_id" property="parentId" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="descr" property="descr" jdbcType="VARCHAR" />
+		<result column="creator" property="creator" jdbcType="VARCHAR" />
+		<result column="create_date" property="createDate" jdbcType="DATE" />
+		<result column="modifier" property="modifier" jdbcType="VARCHAR" />
+		<result column="modify_date" property="modifyDate" jdbcType="DATE" />
+		<result column="remarks" property="remarks" jdbcType="VARCHAR" />
+		<result column="del_flag" property="delFlag" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		id, parent_id, name, descr, creator, create_date, modifier, modify_date, remarks, del_flag
+	</sql>
+
+
+	<sql id="Query_Params">
+		<where>
+			del_flag='0'
+			<if test="query.id!=null">
+				and id=#{query.id}
+			</if>
+			<if test="query.parentId!=null">
+				and parent_id=#{query.parentId}
+			</if>
+			<if test="query.name!=null and query.name!=''">
+				and name=#{query.name}
+			</if>
+			<if test="query.descr!=null and query.descr!=''">
+				and descr=#{query.descr}
+			</if>
+		</where>
+	</sql>
+
+	<sql id="Pagination">
+		limit #{pagination.start}, #{pagination.limit}
+	</sql>
+
+	<select id="query" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_department
+		<include refid="Query_Params" />
+		<include refid="Pagination" />
+	</select>
+
+	<select id="getByName" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_department
+		where name=#{name, jdbcType=VARCHAR} and del_flag='0'
+	</select>
+
+	<select id="count" resultType="Long">
+		SELECT count(*)
+		FROM t_department
+		<include refid="Query_Params" />
+	</select>
+
+	<select id="get" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_department
+		WHERE id = #{id, jdbcType=BIGINT} and del_flag = '0'
+	</select>
+
+	<insert id="insert" parameterType="com.railway.labor.score.model.dto.DepartmentDTO">
+		<selectKey keyProperty="id" resultType="java.lang.Long"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO
+		t_department
+		(name,parent_id,descr,creator, create_date, modifier,modify_date, remarks, del_flag)
+		VALUES
+		(#{name},#{parentId},#{descr}, #{creator},#{createDate},#{modifier}, #{modifyDate},#{remarks},#{delFlag})
+	</insert>
+
+	<update id="update" parameterType="com.railway.labor.score.model.dto.DepartmentDTO">
+		UPDATE t_department
+		<set>
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="parentId != null">
+				parent_id = #{parentId},
+			</if>
+			<if test="descr != null">
+				descr = #{descr},
+			</if>
+			<if test="creator != null">
+				creator = #{creator},
+			</if>
+			<if test="createDate != null">
+				create_date = #{createDate},
+			</if>
+			<if test="modifier != null">
+				modifier = #{modifier},
+			</if>
+			<if test="modifyDate != null">
+				modify_date = #{modifyDate},
+			</if>
+			<if test="remarks != null">
+				remarks = #{remarks},
+			</if>
+			<if test="delFlag != null">
+				del_flag = #{delFlag},
+			</if>
+		</set>
+		WHERE
+		id = #{id} and del_flag = '0'
+	</update>
+
+	<delete id="delete" parameterType="java.lang.Long">
+		UPDATE
+		t_department
+		SET
+		del_flag = '1'
+		WHERE
+		id =#{id} and del_flag = '0'
+	</delete>
+
+</mapper>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+						"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.railway.labor.score.mapper.DictMapper">
+
+	<resultMap id="BaseResultMap" type="com.railway.labor.score.model.dto.DictDTO">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="key" property="key" jdbcType="VARCHAR" />
+		<result column="value" property="value" jdbcType="VARCHAR" />
+		<result column="type" property="type" jdbcType="VARCHAR" />
+		<result column="level" property="level" jdbcType="VARCHAR" />
+		<result column="group" property="group" jdbcType="VARCHAR" />
+		<result column="parent_id" property="parentId" jdbcType="BIGINT" />
+		<result column="creator" property="creator" jdbcType="VARCHAR" />
+		<result column="create_date" property="createDate" jdbcType="DATE" />
+		<result column="modifier" property="modifier" jdbcType="VARCHAR" />
+		<result column="modify_date" property="modifyDate" jdbcType="DATE" />
+		<result column="remarks" property="remarks" jdbcType="VARCHAR" />
+		<result column="del_flag" property="delFlag" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		id, name, `key`, `value`, type, `level`, `group`, parent_id, creator, create_date,
+		modifier, modify_date, remarks, del_flag
+	</sql>
+
+	<sql id="Query_Params">
+		<where>
+			del_flag='0'
+			<if test="query.id!=null">
+				and id=#{query.id}
+			</if>
+			<if test="query.name!=null and query.name!=''">
+				and name=#{query.name}
+			</if>
+			<if test="query.key!=null and query.key!=''">
+				and `key`=#{query.key}
+			</if>
+			<if test="query.value!=null and query.value!=''">
+				and `value`=#{query.value}
+			</if>
+			<if test="query.type!=null and query.type!=''">
+				and type=#{query.type}
+			</if>
+			<if test="query.level!=null and query.level!=''">
+				and `level`=#{query.level}
+			</if>
+			<if test="query.group!=null and query.group!=''">
+				and `group`=#{query.group}
+			</if>
+			<if test="query.parentId!=null">
+				and parent_id=#{query.parentId}
+			</if>
+			
+		</where>
+	</sql>
+
+	<sql id="Pagination">
+		<if test="pagination!=null and pagination.start!=null and pagination.limit!=null">
+				limit #{pagination.start}, #{pagination.limit}
+		</if>
+	</sql>
+
+	<select id="query" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_dict
+		<include refid="Query_Params" />
+		<include refid="Pagination" />
+	</select>
+
+	<select id="count" resultType="Long">
+		SELECT count(*)
+		FROM t_dict
+		<include refid="Query_Params" />
+	</select>
+
+	<select id="get" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM t_dict
+		WHERE id = #{id, jdbcType=BIGINT} and del_flag = '0'
+	</select>
+
+	<insert id="insert" parameterType="com.railway.labor.score.model.dto.DictDTO">
+		<selectKey keyProperty="id" resultType="java.lang.Long"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+		INSERT INTO
+		t_dict
+		(name, `key`, `value`, type, `level`, `group`,parent_id, creator,
+		create_date, modifier,
+		modify_date, remarks, del_flag)
+		VALUES
+		(#{name},#{key},#{value},#{type}, #{level},#{group},#{parentId},#{creator},
+		#{createDate},#{modifier}, #{modifyDate},#{remarks},#{delFlag})
+	</insert>
+
+	<update id="update" parameterType="com.railway.labor.score.model.dto.DictDTO">
+		UPDATE t_dict
+		<set>
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="key != null">
+				`key` = #{key},
+			</if>
+			<if test="value != null">
+				`value` = #{value},
+			</if>
+			<if test="type != null">
+				type = #{type},
+			</if>
+			<if test="level != null">
+				`level` = #{level},
+			</if>
+			<if test="group != null">
+				`group` = #{group},
+			</if>
+			<if test="parentId != null">
+				parent_id = #{parentId},
+			</if>
+			
+			<if test="creator != null">
+				creator = #{creator},
+			</if>
+			<if test="createDate != null">
+				create_date = #{createDate},
+			</if>
+			<if test="modifier != null">
+				modifier = #{modifier},
+			</if>
+			<if test="modifyDate != null">
+				modify_date = #{modifyDate},
+			</if>
+			<if test="remarks != null">
+				remarks = #{remarks},
+			</if>
+			<if test="delFlag != null">
+				del_flag = #{delFlag},
+			</if>
+		</set>
+		WHERE
+		id = #{id} and del_flag = '0'
+	</update>
+
+	<delete id="delete" parameterType="java.lang.Long">
+		UPDATE
+		t_dict
+		SET
+		del_flag = '1'
+		WHERE
+		id =#{id} and del_flag = '0'
+	</delete>
+
+</mapper>
